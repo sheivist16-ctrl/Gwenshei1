@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar with Events</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(126, 34, 206, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -200px;
+            right: -200px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(42, 82, 152, 0.4) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -150px;
+            left: -150px;
+            animation: float 6s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            overflow: visible;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 30px 30px 0 0;
+        }
+
+        .calendar-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .month-year {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .current-date-display {
+            font-size: 14px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 20px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.15);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .today-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 28px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+        }
+
+        .today-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .calendar-body {
+            padding: 35px 30px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 700;
+            color: #764ba2;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #333;
+            position: relative;
+        }
+
+        .day span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .day:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .day.other-month {
+            color: #ccc;
+            font-weight: 400;
+        }
+
+        .day.today {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .day.today::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .day.selected {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
+            transform: scale(1.05);
+        }
+
+        .day.has-event::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 6px;
+            height: 6px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            z-index: 2;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        .event-section {
+            padding: 20px 30px;
+            border-top: 1px solid #eee;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .event-section h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-list {
+            margin-bottom: 20px;
+        }
+
+        .event-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .event-item-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .event-item-time {
+            color: #667eea;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .event-item-desc {
+            color: #666;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .no-events {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .add-event-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .add-event-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .event-form {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .notification {
+            position: fixed;
+            top: -200px;
+            right: 20px;
+            background: white;
+            padding: 20px 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            z-index: 1000;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-left: 5px solid #667eea;
+        }
+
+        .notification.show {
+            top: 20px;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notification-title {
+            font-weight: 700;
+            color: #764ba2;
+            font-size: 18px;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .notification-body {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .notification-time {
+            color: #999;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 500px) {
+            .calendar-container {
+                border-radius: 20px;
+            }
+            
+            .calendar-header {
+                padding: 30px 20px;
+                border-radius: 20px 20px 0 0;
+            }
+            
+            .month-year {
+                font-size: 26px;
+            }
+            
+            .calendar-body {
+                padding: 25px 20px;
+            }
+            
+            .days {
+                gap: 8px;
+            }
+            
+            .day {
+                font-size: 14px;
+            }
+
+            .notification {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+
+            .notification.show {
+                top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">
+        <div class="notification-header">
+            <div class="notification-title">📅 Event Reminder</div>
+            <button class="notification-close" onclick="closeNotification()">×</button>
+        </div>
+        <div class="notification-body" id="notificationBody"></div>
+        <div class="notification-time" id="notificationTime"></div>
+    </div>
+
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <div class="month-year" id="monthYear"></div>
+            <div class="current-date-display" id="currentDateDisplay"></div>
+            <div class="navigation">
+                <button class="nav-btn" id="prevBtn">◀</button>
+                <button class="today-btn" id="todayBtn">Today</button>
+                <button class="nav-btn" id="nextBtn">▶</button>
+            </div>
+        </div>
+        <div class="calendar-body">
+            <div class="weekdays">
+                <div class="weekday">Sun</div>
+                <div class="weekday">Mon</div>
+                <div class="weekday">Tue</div>
+                <div class="weekday">Wed</div>
+                <div class="weekday">Thu</div>
+                <div class="weekday">Fri</div>
+                <div class="weekday">Sat</div>
+            </div>
+            <div class="days" id="daysContainer"></div>
+        </div>
+        <div class="event-section" id="eventSection">
+            <h3>
+                <span id="eventDateTitle">Events</span>
+                <button class="add-event-btn" onclick="toggleEventForm()">+ Add Event</button>
+            </h3>
+            <div class="event-list" id="eventList"></div>
+            <div class="event-form" id="eventForm" style="display: none;">
+                <h4 style="color: #764ba2; margin-bottom: 10px; font-size: 16px;">New Event</h4>
+                <div class="form-group">
+                    <input type="text" id="eventTitle" placeholder="Event title">
+                </div>
+                <div class="form-group">
+                    <input type="time" id="eventTime">
+                </div>
+                <div class="form-group">
+                    <textarea id="eventDescription" placeholder="Description (optional)"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
+                    <button class="btn btn-secondary" onclick="toggleEventForm()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDate = null;
+        let events = {};
+
+        // Sample events
+        function addSampleEvents() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+
+            // Today's events
+            const todayKey = getDateKey(today);
+            events[todayKey] = [
+                { title: 'Team Meeting', time: '10:00', description: 'Discuss project updates', notified: false },
+                { title: 'Lunch Break', time: '12:00', description: 'Pizza with colleagues', notified: false },
+                { title: 'Gym Session', time: '18:00', description: 'Leg day workout', notified: false }
+            ];
+
+            // Tomorrow's events
+            const tomorrowKey = getDateKey(tomorrow);
+            events[tomorrowKey] = [
+                { title: 'Morning Yoga', time: '07:00', description: 'Start the day fresh', notified: false },
+                { title: 'Client Presentation', time: '14:00', description: 'Q4 business review', notified: false }
+            ];
+
+            // Next week's events
+            const nextWeekKey = getDateKey(nextWeek);
+            events[nextWeekKey] = [
+                { title: 'Birthday Party', time: '19:00', description: "Sarah's birthday celebration", notified: false },
+                { title: 'Dentist Appointment', time: '09:30', description: 'Regular checkup', notified: false }
+            ];
+
+            // Add event in 2 days
+            const twoDays = new Date(today);
+            twoDays.setDate(twoDays.getDate() + 2);
+            const twoDaysKey = getDateKey(twoDays);
+            events[twoDaysKey] = [
+                { title: 'Shopping', time: '15:00', description: 'Buy groceries', notified: false }
+            ];
+        }
+
+        addSampleEvents();
+
+        const monthYear = document.getElementById('monthYear');
+        const currentDateDisplay = document.getElementById('currentDateDisplay');
+        const daysContainer = document.getElementById('daysContainer');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const todayBtn = document.getElementById('todayBtn');
+        const eventForm = document.getElementById('eventForm');
+        const eventList = document.getElementById('eventList');
+        const eventDateTitle = document.getElementById('eventDateTitle');
+        const notification = document.getElementById('notification');
+
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        function getDateKey(date) {
+            return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        }
+
+        function updateCurrentDateDisplay() {
+            const today = new Date();
+            currentDateDisplay.textContent = `${days[today.getDay()]}, ${months[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
+        }
+
+        function updateEventList(date) {
+            const dateKey = getDateKey(date);
+            const dateEvents = events[dateKey] || [];
+            
+            eventDateTitle.textContent = `Events for ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            
+            if (dateEvents.length === 0) {
+                eventList.innerHTML = '<div class="no-events">No events scheduled for this day</div>';
+            } else {
+                eventList.innerHTML = dateEvents.map((event, index) => `
+                    <div class="event-item">
+                        <div class="event-item-header">
+                            <div class="event-item-title">${event.title}</div>
+                            <div class="event-item-time">${event.time}</div>
+                        </div>
+                        ${event.description ? `<div class="event-item-desc">${event.description}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        function toggleEventForm() {
+            if (eventForm.style.display === 'none') {
+                eventForm.style.display = 'block';
+                document.getElementById('eventTitle').value = '';
+                document.getElementById('eventTime').value = '';
+                document.getElementById('eventDescription').value = '';
+            } else {
+                eventForm.style.display = 'none';
+            }
+        }
+
+        function showNotification(event) {
+            document.getElementById('notificationBody').innerHTML = `<strong>${event.title}</strong><br>${event.description || 'No description'}`;
+            document.getElementById('notificationTime').textContent = `Time: ${event.time}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                closeNotification();
+            }, 5000);
+        }
+
+        function closeNotification() {
+            notification.classList.remove('show');
+        }
+
+        function checkUpcomingEvents() {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const dateKey = getDateKey(now);
+            
+            if (events[dateKey]) {
+                events[dateKey].forEach(event => {
+                    if (event.time === currentTime && !event.notified) {
+                        showNotification(event);
+                        event.notified = true;
+                    }
+                });
+            }
+        }
+
+        setInterval(checkUpcomingEvents, 60000);
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            monthYear.textContent = `${months[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const prevLastDate = new Date(year, month, 0).getDate();
+
+            daysContainer.innerHTML = '';
+
+            for (let i = firstDay; i > 0; i--) {
+                const day = document.createElement('div');
+                day.className = 'day other-month';
+                const span = document.createElement('span');
+                span.textContent = prevLastDate - i + 1;
+                day.appendChild(span);
+                daysContainer.appendChild(day);
+            }
+
+            const today = new Date();
+            for (let i = 1; i <= lastDate; i++) {
+                const day = document.createElement('div');
+                day.className = 'day';
+                const span = document.createElement('span');
+                span.textContent = i;
+                day.appendChild(span);
+
+                const dateKey = getDateKey(new Date(year, month, i));
+                if (events[dateKey] && events[dateKey].length > 0) {
+                    day.classList.add('has-event');
+                }
+
+                if (
+                    i === today.getDate() &&
+                    month === today.getMonth() &&
+                    year === today.getFullYear()
+                ) {
+                    day.classList.add('today');
+                }
+
+                day.addEventListener('click', () => {
+                    document.querySelectorAll('.day.selected').forEach(d => {
+                        d.classList.remove('selected');
+                    });
+                    day.classList.add('selected');
+                    selectedDate = new Date(year, month, i);
+                    updateEventList(selectedDate);
+                    eventForm.style.display = 'none';
+                });
+
+                daysContainer.appendChild(day);
+            }
+
+            const totalCells = firstDay + lastDate;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let i = 1; i <= remainingCells; i++) {
+                const day = document.createElement('div');
+                day.className = 'day other-month';
+                const span = document.createElement('span');
+                span.textContent = i;
+                day.appendChild(span);
+                daysContainer.appendChild(day);
+            }
+        }
+
+        function saveEvent() {
+            const title = document.getElementById('eventTitle').value;
+            const time = document.getElementById('eventTime').value;
+            const description = document.getElementById('eventDescription').value;
+
+            if (!title || !time) {
+                alert('Please enter event title and time!');
+                return;
+            }
+
+            if (!selectedDate) {
+                selectedDate = new Date();
+            }
+
+            const dateKey = getDateKey(selectedDate);
+            if (!events[dateKey]) {
+                events[dateKey] = [];
+            }
+
+            events[dateKey].push({
+                title,
+                time,
+                description,
+                notified: false
+            });
+
+            eventForm.style.display = 'none';
+            renderCalendar();
+            updateEventList(selectedDate);
+            
+            showNotification({
+                title: 'Event Added!',
+                description: `${title} on ${selectedDate.toLocaleDateString()}`,
+                time: time
+            });
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        todayBtn.addEventListener('click', () => {
+            currentDate = new Date();
+            renderCalendar();
+        });
+
+        updateCurrentDateDisplay();
+        renderCalendar();
+        updateEventList(new Date());
+        checkUpcomingEvents();
+    </script>
+</body>
+</html>

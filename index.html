@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+      background: #fff;
+      color: #3c4043;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      border-right: 1px solid #dadce0;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 22px;
+      color: #5f6368;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: #1a73e8;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .create-btn {
+      background: white;
+      border: 1px solid #dadce0;
+      border-radius: 24px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      font-size: 14px;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .create-btn:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .mini-calendar {
+      margin-bottom: 20px;
+    }
+
+    .mini-cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .mini-cal-month {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .mini-cal-nav {
+      display: flex;
+      gap: 5px;
+    }
+
+    .mini-cal-nav button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+    }
+
+    .mini-cal-nav button:hover {
+      background: #f1f3f4;
+    }
+
+    .mini-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      text-align: center;
+    }
+
+    .mini-cal-day {
+      font-size: 11px;
+      color: #70757a;
+      padding: 5px 0;
+    }
+
+    .mini-cal-date {
+      font-size: 12px;
+      padding: 5px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .mini-cal-date:hover {
+      background: #f1f3f4;
+    }
+
+    .mini-cal-date.today {
+      background: #1a73e8;
+      color: white;
+      font-weight: bold;
+    }
+
+    .calendar-list {
+      margin-top: 20px;
+    }
+
+    .calendar-list-header {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .calendar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .calendar-item:hover {
+      background: #f1f3f4;
+    }
+
+    .calendar-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+    }
+
+    /* Main Calendar */
+    .main-calendar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      border-bottom: 1px solid #dadce0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-title {
+      font-size: 22px;
+      color: #3c4043;
+    }
+
+    .header-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .today-btn {
+      padding: 8px 20px;
+      border: 1px solid #dadce0;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .today-btn:hover {
+      background: #f1f3f4;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn:hover {
+      background: #f1f3f4;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+    }
+
+    .icon-btn:hover {
+      background: #f1f3f4;
+    }
+
+    .view-dropdown {
+      padding: 8px 16px;
+      border: 1px solid #dadce0;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Calendar Grid */
+    .calendar-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: auto repeat(5, 1fr);
+      border-left: 1px solid #dadce0;
+      overflow: hidden;
+    }
+
+    .calendar-header-row {
+      display: contents;
+    }
+
+    .calendar-day-header {
+      border-right: 1px solid #dadce0;
+      border-bottom: 1px solid #dadce0;
+      padding: 8px;
+      text-align: center;
+      background: #fff;
+    }
+
+    .day-name-header {
+      font-size: 11px;
+      color: #70757a;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .day-number {
+      font-size: 20px;
+      color: #3c4043;
+      margin-top: 2px;
+    }
+
+    .calendar-cell {
+      border-right: 1px solid #dadce0;
+      border-bottom: 1px solid #dadce0;
+      padding: 4px;
+      position: relative;
+      background: white;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .calendar-cell:hover {
+      background: #f8f9fa;
+    }
+
+    .cell-date {
+      font-size: 12px;
+      color: #70757a;
+      padding: 4px;
+    }
+
+    .cell-date.today {
+      background: #1a73e8;
+      color: white;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .calendar-cell.other-month {
+      background: #fafafa;
+    }
+
+    .calendar-cell.other-month .cell-date {
+      color: #9aa0a6;
+    }
+
+    .event {
+      background: #7986cb;
+      color: white;
+      padding: 2px 6px;
+      margin: 1px 0;
+      border-radius: 3px;
+      font-size: 11px;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .event:hover {
+      filter: brightness(1.1);
+    }
+
+    .event.color-1 { background: #039be5; color: #000000; }
+    .event.color-2 { background: #7986cb; color: #000000; }
+    .event.color-3 { background: #a90ff7; color: #000000; }
+    .event.color-4 { background: #3bcbf3; color: #000000; }
+    .event.color-5 { background: #616161; color: #000000; }
+    .event.color-6 { background: #ff1313; color: #000000; }
+    .event.color-7 { background: #21f533; color: #000000; }
+    .event.color-8 { background: #0b8043; color: #000000; }
+    .event.color-9 { background: #f09300; color: #000000; }
+    
+    /* Event Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      width: 500px;
+      max-width: 90%;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #dadce0;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      color: #5f6368;
+      margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid #dadce0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      background: #1a73e8;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1765cc;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #1a73e8;
+      border: 1px solid #dadce0;
+    }
+
+    .btn-secondary:hover {
+      background: #f1f3f4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <div class="logo-icon">📅</div>
+        <span>Calendar</span>
+      </div>
+
+      <button class="create-btn" onclick="openModal()">
+        <span style="font-size: 20px; color: #1a73e8;">+</span>
+        <span>Create</span>
+      </button>
+
+      <div class="mini-calendar">
+        <div class="mini-cal-header">
+          <div class="mini-cal-month" id="miniMonth">November 2025</div>
+          <div class="mini-cal-nav">
+            <button onclick="changeMiniMonth(-1)">‹</button>
+            <button onclick="changeMiniMonth(1)">›</button>
+          </div>
+        </div>
+        <div class="mini-cal-grid" id="miniCalGrid"></div>
+      </div>
+
+      <div class="calendar-list">
+        <div class="calendar-list-header">
+          My calendars
+          <button class="nav-btn">▼</button>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #039be5;"></div>
+          <span>Ting simba</span>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #7986cb;"></div>
+          <span>Schooling</span>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #a90ff7;"></div>
+          <span>Passing</span>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #3bcbf3;"></div>
+          <span>Birthdays</span>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #616161;"></div>
+          <span>basketball time</span>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #ff1313;"></div>
+          <span>Reminders</span>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #4dbc11;"></div>
+          <span>Rest Day</span>
+        </div>
+        <div class="calendar-list-header" style="margin-top: 20px;">
+          Other calendars
+          <button class="nav-btn">▼</button>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #0b8043;"></div>
+          <span>Laba time</span>
+        </div>
+        <div class="calendar-item">
+          <div class="calendar-color" style="background: #f09300;"></div>
+          <span>Chill Day</span>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Main Calendar -->
+    <div class="main-calendar">
+      <div class="header">
+        <div class="header-left">
+          <div class="header-title" id="headerTitle">November 2025</div>
+          <div class="header-nav">
+            <button class="today-btn" onclick="goToToday()">Today</button>
+            <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+            <button class="nav-btn" onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="icon-btn">🔍</button>
+          <button class="icon-btn">❓</button>
+          <button class="icon-btn">⚙️</button>
+          <select class="view-dropdown">
+            <option>Month</option>
+            <option>Week</option>
+            <option>Day</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+  </div>
+
+  <!-- Event Modal -->
+  <div class="modal" id="eventModal">
+    <div class="modal-content">
+      <div class="modal-header">Add Event</div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Event Title</label>
+          <input type="text" id="eventTitle" placeholder="Add title">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="eventDate">
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <select id="eventColor">
+            <option value="1">Blue</option>
+            <option value="2">Purple</option>
+            <option value="3">Valiolet</option>
+            <option value="4">Sky Blue</option>
+            <option value="5">Black</option>
+            <option value="6">Red</option>
+            <option value="7">Yellow Green</option>
+            <option value="8">Dark Green</option>
+            <option value="9">Dark Yellow</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEvent()">Save</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // ==========================================
+    // EVENT DATA
+    // ==========================================
+    let events = {
+      "2025-11-08": [{title: "pass of the calendar", color: 3}],
+      "2025-11-09": [{title: "10am Chruch", color: 6}],
+      "2025-11-10": [{title: "AmEng 1 10:00-12:00pm", color: 6}, {title: "NSTP 8:00-10:00 am", color: 6}, {title: "P.E 1:00-5:00pm", color: 6}],
+      "2025-11-11": [{title: "Schooling", color: 2}, {title: "AmEng 1 10:00-12:00pm", color: 6}, {title: "NSTP 8:00-10:00 am", color: 6}, {title: "Rest day", color: 7}],
+      "2025-11-12": [{title: "Schooling", color: 2}, {title: "Com Prog 8:00-10:00am", color: 6}, {title: "Introduction 1:00-3:00pm", color: 6}, {title: "UTS 3:00-5:00pmm", color: 6}],
+      "2025-11-13": [{title: "Schooling", color: 2}, {title: "Com Prog 8:00-10:00am", color: 6}, {title: "Introduction 1:00-3:00pm", color: 6}, {title: "UTS 3:00-5:00pmm", color: 6}],
+      "2025-11-14": [{title: "Laba day", color: 8}, {title: "Rest day", color: 7}],
+      "2025-11-15": [{title: "Rest day", color: 7}],
+      "2025-11-16": [{title: "10am ting simba sa mga devils", color: 6}],   
+      "2025-11-17": [{title: "Schooling", color: 2}, {title: "AmEng 1 10:00-12:00pm", color: 6}, {title: "NSTP 8:00-10:00 am", color: 6}, {title: "P.E 1:00-5:00pm", color: 6}],
+      "2025-11-18": [{title: "Schooling", color: 2}, {title: "AmEng 1 10:00-12:00pm", color: 6}, {title: "NSTP 8:00-10:00 am", color: 6}, {title: "Rest day", color: 7}],
+      "2025-11-19": [{title: "Schooling", color: 2}, {title: "Com Prog 8:00-10:00am", color: 6}, {title: "Introduction 1:00-3:00pm", color: 6}, {title: "UTS 3:00-5:00pmm", color: 6}],
+      "2025-11-20": [{title: "Sem break", color: 9}],
+      "2025-11-21": [{title: "Sem break", color: 9}],
+      "2025-11-22": [{title: "Rest day", color: 7}],
+      "2025-11-23": [{title: "10am ting simba sa mga devils", color: 6}],
+      "2025-11-24": [{title: "Sem break", color: 9}],
+      "2025-11-28": [{title: "10am Church", color: 8}],
+      "2025-11-30": [{title: "10am Church", color: 6}],
+      "2025-12-01": [{title: "World AIDS Day", color: 6}],
+      "2025-12-02": [{title: "International Day for the Abolition of Slavery", color: 6}],
+      "2025-12-03": [{title: "International Day of Persons with Disabilities", color: 6}],
+      "2025-12-04": [{title: "Wildlife Conservation Day", color: 6}],
+      "2025-12-05": [{title: "World Soil Day, International Volunteer Day", color: 6}],
+      "2025-12-06": [{title: "Mahaparinirvan Din", color: 6}],
+      "2025-12-07": [{title: "Armed Forces Flag Day, National Cotton Candy Day, International Civil Aviation Day", color: 6}],
+      "2025-12-08": [{title: "National Brownie Day", color: 6}],
+      "2025-12-09": [{title: "International Anti-Corruption Day, National Pastry Day", color: 6}],
+      "2025-12-10": [{title: "Human Rights Day, Nobel Prize Day, International Animal Rights Day", color: 6}],
+      "2025-12-11": [{title: "International Mountain Day, UNICEF Birthday", color: 6}],
+      "2025-12-12": [{title: "International Day of Neutrality, Universal Health Coverage Day", color: 6}],
+      "2025-12-13": [{title: "Hanukkah, Monkey Day", color: 6}],
+      "2025-12-14": [{title: "International Migrants Day", color: 6}],
+      "2025-12-18": [{title: "International Human Solidarity Day", color: 6}],
+      "2025-12-20": [{title: "Winter Solstice", color: 6}],
+      "2025-12-21": [{title: "National Farmers Day", color: 6}],
+      "2025-12-23": [{title: "Christmas Eve, National Consumer Day", color: 6}],
+      "2025-12-24": [{title: "Christmas Day", color: 6}],
+      "2025-12-25": [{title: "Boxing Day, Kwanzaa", color: 6}],
+      "2025-12-26": [{title: "International Day of Epidemic Preparedness", color: 6}],
+      "2025-12-27": [{title: "International Day for the Abolition of Slavery", color: 6}],
+      "2025-12-31": [{title: "New Year’s Eve, National Make Up Your Mind Day", color: 6}],
+      "2026-01-01": [{title: "New Year", color: 6}],
+      "2026-01-03": [{title: "World Day of Peace", color: 6}],
+      "2026-01-04": [{title: "World Braille Day", color: 6}],
+      "2026-01-06": [{title: "Epiphany", color: 6}],
+      "2026-01-14": [{title: "World Logic Day", color: 6}],
+      "2026-01-18": [{title: "Sinulog Central Visayas", color: 6}],
+      "2026-01-24": [{title: "International Day of Education", color: 6}],
+      "2026-01-27": [{title: "International Holocaust Remembrance Day", color: 6}],
+      "2026-02-01": [{title: "World Hijab Day", color: 6}],
+      "2026-02-02": [{title: "World Wetlands Day", color: 6}, {title: "Constitution Day", color: 6}],
+      "2026-02-03": [{title: "Laylat al-Baraa", color: 6}],
+      "2026-02-04": [{title: "World Cancer Day", color: 6}, {title: "International Day of Human Fraternity", color: 6}],
+      "2026-02-09": [{title: "World Pizza Day", color: 6}, {title: "International Day of the Dentist", color: 6}],
+      "2026-02-10": [{title: "World Pulses Day", color: 6}, {title: "International Day of the Arabian Leopard", color: 6}],
+      "2026-02-11": [{title: "Governor Evelio B. Javier Day", color: 6}, {title: "International Day of Women and Girls in Science", color: 6}], 
+      "2026-02-12": [{title: "Red Hand Day", color: 6}, {title: "Darwin Day", color: 6}],
+      "2026-02-13": [{title: "World Radio Day", color: 6}],
+      "2026-02-14": [{title: "International Purple Hijab Day", color: 6}],
+      "2026-02-15": [{title: "Parinirvana Day", color: 6}, {title: "Singles Awareness Day", color: 6}],
+      "2026-02-17": [{title: "Global Tourism Resilience Day", color: 6}],
+      "2026-02-18": [{title: "Ash Wednesday", color: 6}],
+      "2026-02-19": [{title: "Tug of War Day", color: 6}, {title: "World Anthropology Day", color: 6}],
+      "2026-02-20": [{title: "National Love Your Pet Day", color: 6}, {title: "National Leadership Day", color: 6}],
+      "2026-02-21": [{title: "International Mother Language Day", color: 6}, {title: "Card Reading Day", color: 6}],
+      "2026-02-22": [{title: "World Thinking Day", color: 6}, {title: "Recreational Sports & Fitness Day", color: 6}],
+      "2026-02-23": [{title: "International Dog Biscuit Day", color: 6}, {title: "Pinocchio Day", color: 6}],
+      "2026-02-24": [{title: "World Bartender Day", color: 6}, {title: "World Spay Day", color: 6}],
+      "2026-02-25": [{title: "Anniversary of the EDSA Revolution", color: 6}],
+      "2026-04-02": [{title: "Maundy Thursday", color: 6}],
+      "2026-04-03": [{title: "Good Friday", color: 6}],
+      "2026-04-09": [{title: " Araw ng Kagitingan", color: 6}],
+      "2026-05-01": [{title: "Labor Day", color: 6}],
+      "2026-06-12": [{title: "Independence Day", color: 6}],
+      "2026-08-31": [{title: "National Heroes Day", color: 6}],
+      "2026-06-12": [{title: "Independence Day", color: 6}],
+      "2026-10-30": [{title: "Bonifacio Day", color: 6}],
+      "2026-12-25": [{title: "Christmas Day", color: 6}],
+      "2026-12-30": [{title: "Rizal Day", color: 6}],
+      "2026-08-21": [{title: "Ninoy Aquino Day", color: 6}],
+      "2026-10-01": [{title: "All Saints’ Day", color: 6}],
+      "2026-12-08": [{title: "Feast of the Immaculate Conception of Mary", color: 6}],
+      "2026-12-31": [{title: "Last Day of the Year", color: 6}],
+      "2026-04-04": [{title: "Black Saturday", color: 6}],
+      "2026-10-02": [{title: "All Souls’ Day", color: 6}],
+      "2026-12-24": [{title: "Christmas Eve", color: 6}],
+      "2026-04-17": [{title: "Birthday ni Cuyos", color: 6}],
+      
+
+      
+      
+    };
+
+    // ==========================================
+    // GLOBAL VARIABLES
+    // ==========================================
+    let currentDate = new Date(2019, 6, 1); // July 2019
+    let miniCurrentDate = new Date(2019, 6, 1);
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+    // ==========================================
+    // MINI CALENDAR
+    // ==========================================
+    function generateMiniCalendar() {
+      const grid = document.getElementById('miniCalGrid');
+      const monthEl = document.getElementById('miniMonth');
+      
+      const year = miniCurrentDate.getFullYear();
+      const month = miniCurrentDate.getMonth();
+      
+      monthEl.textContent = `${monthNames[month]} ${year}`;
+      grid.innerHTML = '';
+      
+      // Day headers
+      ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(day => {
+        const el = document.createElement('div');
+        el.className = 'mini-cal-day';
+        el.textContent = day;
+        grid.appendChild(el);
+      });
+      
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+      
+      // Empty cells
+      for (let i = 0; i < firstDay; i++) {
+        grid.appendChild(document.createElement('div'));
+      }
+      
+      // Dates
+      for (let day = 1; day <= daysInMonth; day++) {
+        const el = document.createElement('div');
+        el.className = 'mini-cal-date';
+        el.textContent = day;
+        
+        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+          el.classList.add('today');
+        }
+        
+        grid.appendChild(el);
+      }
+    }
+
+    function changeMiniMonth(direction) {
+      miniCurrentDate.setMonth(miniCurrentDate.getMonth() + direction);
+      generateMiniCalendar();
+    }
+
+    // ==========================================
+    // MAIN CALENDAR
+    // ==========================================
+    function generateCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      const headerTitle = document.getElementById('headerTitle');
+      
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      headerTitle.textContent = `${monthNames[month]} ${year}`;
+      grid.innerHTML = '';
+      
+      // Header row with day names and dates
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const prevMonthDays = new Date(year, month, 0).getDate();
+      
+      // Calculate week start
+      let startDate = new Date(year, month, 1);
+      startDate.setDate(1 - firstDayOfMonth);
+      
+      // Generate header row
+      for (let i = 0; i < 7; i++) {
+        const headerCell = document.createElement('div');
+        headerCell.className = 'calendar-day-header';
+        
+        const currentHeaderDate = new Date(startDate);
+        currentHeaderDate.setDate(startDate.getDate() + i);
+        
+        const dayName = document.createElement('div');
+        dayName.className = 'day-name-header';
+        dayName.textContent = dayNames[i];
+        
+        const dayNum = document.createElement('div');
+        dayNum.className = 'day-number';
+        dayNum.textContent = currentHeaderDate.getDate();
+        
+        const today = new Date();
+        if (currentHeaderDate.getFullYear() === today.getFullYear() &&
+            currentHeaderDate.getMonth() === today.getMonth() &&
+            currentHeaderDate.getDate() === today.getDate()) {
+          dayNum.style.background = '#1a73e8';
+          dayNum.style.color = 'white';
+          dayNum.style.borderRadius = '50%';
+          dayNum.style.width = '36px';
+          dayNum.style.height = '36px';
+          dayNum.style.display = 'flex';
+          dayNum.style.alignItems = 'center';
+          dayNum.style.justifyContent = 'center';
+          dayNum.style.margin = '0 auto';
+        }
+        
+        headerCell.appendChild(dayName);
+        headerCell.appendChild(dayNum);
+        grid.appendChild(headerCell);
+      }
+      
+      // Generate calendar cells (5 weeks)
+      for (let week = 0; week < 5; week++) {
+        for (let day = 0; day < 7; day++) {
+          const cellDate = new Date(startDate);
+          cellDate.setDate(startDate.getDate() + (week * 7) + day + 7); // +7 to skip header week
+          
+          const cell = document.createElement('div');
+          cell.className = 'calendar-cell';
+          
+          if (cellDate.getMonth() !== month) {
+            cell.classList.add('other-month');
+          }
+          
+          const dateEl = document.createElement('div');
+          dateEl.className = 'cell-date';
+          dateEl.textContent = cellDate.getDate();
+          
+          const today = new Date();
+          if (cellDate.getFullYear() === today.getFullYear() &&
+              cellDate.getMonth() === today.getMonth() &&
+              cellDate.getDate() === today.getDate() &&
+              cellDate.getMonth() === month) {
+            dateEl.classList.add('today');
+          }
+          
+          cell.appendChild(dateEl);
+          
+          // Add events
+          const dateString = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
+          if (events[dateString]) {
+            events[dateString].forEach(event => {
+              const eventEl = document.createElement('div');
+              eventEl.className = `event color-${event.color}`;
+              eventEl.textContent = event.title;
+              cell.appendChild(eventEl);
+            });
+          }
+          
+          cell.onclick = () => {
+            document.getElementById('eventDate').value = dateString;
+            openModal();
+          };
+          
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function changeMonth(direction) {
+      currentDate.setMonth(currentDate.getMonth() + direction);
+      miniCurrentDate = new Date(currentDate);
+      generateCalendar();
+      generateMiniCalendar();
+    }
+
+    function goToToday() {
+      currentDate = new Date();
+      miniCurrentDate = new Date();
+      generateCalendar();
+      generateMiniCalendar();
+    }
+
+    // ==========================================
+    // EVENT MODAL
+    // ==========================================
+    function openModal() {
+      document.getElementById('eventModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('eventModal').classList.remove('active');
+      document.getElementById('eventTitle').value = '';
+    }
+
+    function saveEvent() {
+      const title = document.getElementById('eventTitle').value;
+      const date = document.getElementById('eventDate').value;
+      const color = document.getElementById('eventColor').value;
+      
+      if (!title || !date) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      if (!events[date]) {
+        events[date] = [];
+      }
+      
+      events[date].push({title, color: parseInt(color)});
+      
+      closeModal();
+      generateCalendar();
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('eventModal').addEventListener('click', (e) => {
+      if (e.target.id === 'eventModal') {
+        closeModal();
+      }
+    });
+
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
+    generateCalendar();
+    generateMiniCalendar();
+  </script>
+</body>
+</html>
